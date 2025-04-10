@@ -11,6 +11,42 @@ The workflow involves:
 2.  **Retrieval:** For each input tweet (during training, validation, or testing), retrieve the top-k most similar tweets from the FAISS index.
 3.  **Augmentation & Classification:** Combine the original tweet and the retrieved tweets into a single input sequence, then feed it into a transformer-based sequence classification model for the final prediction (real/fake).
 
+
+# Graph-RAG-Based Tweet Authenticity Classifier
+This project implements a Graph-Retrieval-Augmented Generation (Graph-RAG) based approach to classify tweets as "real" or "fake". It leverages a retriever model (Sentence Transformer) to find relevant examples from the training data using a neighborhood exploration strategy and incorporates them as context for a final classifier model (e.g., BERT, RoBERTa).
+
+# Overview
+The core idea is to enhance the classification performance by providing the classifier not just with the tweet itself, but also with semantically similar tweets and their neighbors from a known dataset (the training set in this case). This simulates a 1-hop graph traversal in the embedding space, potentially capturing richer contextual relationships than standard RAG.
+
+The workflow involves:
+1. **Retriever Indexing:** Encoding all training tweets using a Sentence Transformer model and building a FAISS index for efficient similarity search.
+2. **Graph-like Retrieval:** For each input tweet (during training, validation, or testing):
+3. **Retrieve the top-k:** primary most similar tweets from the FAISS index.
+4. **Retrieve the top-m:** secondary neighbors for each of those primary tweets.
+5. **Combine and deduplicate:** these primary and secondary neighbors.
+
+Augmentation & Classification: Combine the original tweet and the final set of retrieved neighbor tweets into a single input sequence, then feed it into a transformer-based sequence classification model for the final prediction (real/fake).
+
+# Fast Graph-RAG Implementation (Adapted for Nano/Speed).
+
+This script implements a Retrieval-Augmented Generation (RAG) approach
+for text classification, adapted for faster execution ("Fast-Graph-RAG" or "Nano-Graph-RAG").
+Key adaptations include:
+- Using DistilBERT as the classifier for faster training/inference.
+- Employing FAISS IndexIVFFlat for faster approximate nearest neighbor search.
+- Adding optional mixed-precision training (torch.cuda.amp).
+- Configuration options tailored for speed vs. accuracy trade-offs.
+
+Core Components:
+1. **Configuration:** Hyperparameters, paths, model names, FAISS settings, AMP flag.
+2. **Data Loading:** Loads and preprocesses data.
+3. **Custom Dataset (GraphRagNewsDataset):** Integrates retrieval.
+4. **Retriever Setup:** SentenceTransformer + FAISS (IndexIVFFlat).
+5. **Graph-like Retrieval Function:** Finds primary/secondary neighbors using FAISS.
+6. **Classifier Model:** DistilBERT for sequence classification.
+7. **Training Loop:** Fine-tunes the classifier with optional AMP.
+8. **Evaluation:** Measures performance.
+
 ## Features
 
 * **RAG Implementation:** Combines retrieval and classification for enhanced performance.
